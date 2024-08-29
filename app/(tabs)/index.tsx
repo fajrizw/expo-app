@@ -5,7 +5,7 @@ import { Text, View } from "@/components/Themed";
 import { supabase } from "@/lib/supabase";
 import { useFocusEffect } from "@react-navigation/native";
 import React from "react";
-
+import { MonoText } from "@/components/StyledText";
 export default function TabOneScreen() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -57,19 +57,10 @@ export default function TabOneScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Product</Text>
-      <View
-        style={styles.separator}
-        lightColor="#eee"
-        darkColor="rgba(255,255,255,0.1)"
-      />
+      <Text style={styles.title}>Welcome Back</Text>
       {profile ? (
         <View>
-          <Text style={styles.profileText}>Username: {profile.username}</Text>
-          <Text style={styles.profileText}>Website: {profile.website}</Text>
-          <Text style={styles.profileText}>
-            Avatar URL: {profile.avatar_url}
-          </Text>
+          <Text style={styles.profileText}>{profile.username}</Text>
         </View>
       ) : (
         <Text>No profile data available.</Text>
@@ -81,12 +72,13 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    // alignItems: "center",
+    // justifyContent: "center",
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 24,
+    paddingLeft: 13,
+    fontWeight: "medium",
   },
   separator: {
     marginVertical: 30,
@@ -94,7 +86,9 @@ const styles = StyleSheet.create({
     width: "80%",
   },
   profileText: {
-    fontSize: 16,
-    marginVertical: 4,
+    fontSize: 28,
+    marginVertical: 2,
+    paddingLeft: 13,
+    fontWeight: "semibold",
   },
 });
