@@ -28,10 +28,12 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font",
-      {
-        "fonts": ["./assets/fonts/Poppins/Poppins-SemiBold.ttf"]
-      }
+      [
+        "expo-font",
+        {
+          "Poppins-SemiBold": "./assets/fonts/Poppins/Poppins-SemiBold.ttf"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
