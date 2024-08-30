@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { fetchProductById, updateProduct } from "@/lib/supabase";
+import { fetchProductById } from "@/lib/supabase";
+import { updateProductById } from "@/components/UpdateProduct";
 
 export default function UpdateProduct() {
   const router = useRouter();
@@ -35,15 +36,14 @@ export default function UpdateProduct() {
 
   const handleUpdate = async () => {
     if (id) {
-      const updatedProduct = await updateProduct(
+      const updatedProduct = await updateProductById(
         parseInt(id),
         title,
         description
       );
       if (updatedProduct) {
         alert("Product updated successfully!");
-
-        router.back(); // Kembali ke halaman sebelumnya
+        router.back();
       } else {
         alert("Failed to update product");
       }

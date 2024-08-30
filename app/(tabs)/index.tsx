@@ -19,8 +19,9 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 
 import { useNavigation } from "@react-navigation/native";
-import UpdateProductScreen from "../update";
+
 import { router, useLocalSearchParams } from "expo-router";
+import ProductList from "@/components/ProductList";
 
 const numColumns = 2;
 interface Product {
@@ -38,46 +39,17 @@ export default function TabOneScreen() {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
 
-  const handleAddProduct = async () => {
-    if (title && description) {
-      const newProduct = await createProduct(title, description);
-      if (newProduct) {
-        setTitle(""); // Reset title input
-        setDescription(""); // Reset description input
-
-        console.log("Product created, fetching products...");
-        await loadProducts();
-      }
-    } else {
-      alert("Please enter both a title and description");
-    }
+  const handleDeleteProduct = async (id: number) => {
+    await deleteProduct(id);
+    await loadProducts();
   };
 
   const handleUpdateProduct = (id: number) => {
-    router.push({
-      pathname: "../update", // Path to the update page
-      params: { id: id.toString() }, // Pass ID as a parameter
-    });
+    router.push({ pathname: "../update", params: { id: id.toString() } });
   };
-  const handleDelete = async (productId: number) => {
-    const numericId = parseInt(productId.toString(), 10);
 
-    if (isNaN(numericId)) {
-      Alert.alert("Error", "Invalid ID");
-      return;
-    }
-
-    try {
-      const result = await deleteProduct(numericId);
-      if (result) {
-        Alert.alert("Success", "Product deleted successfully");
-        await loadProducts(); // Muat ulang daftar produk
-      } else {
-        Alert.alert("Error", "Failed to delete product");
-      }
-    } catch (error) {
-      Alert.alert("Error", "An unexpected error occurred");
-    }
+  const handleCreateProduct = () => {
+    router.push("/create");
   };
 
   const loadProducts = async () => {
@@ -140,52 +112,24 @@ export default function TabOneScreen() {
     );
   }
 
-  const renderProduct = ({ item }: { item: Product }) => (
-    <View style={styles.card}>
-      <Button
-        title="Update Product"
-        onPress={() => handleUpdateProduct(item.id)} // Ganti `productId` dengan ID produk yang ingin di-update
-      />
-      <Button
-        title="Delete Product"
-        onPress={() => handleDelete(item.id)} // Pass the correct product ID
-      />
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardDescription}>{item.description}</Text>
-    </View>
-  );
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome Back</Text>
+
       {profile ? (
         <View>
           <Text style={styles.profileText}>{profile.username}</Text>
+
+          <Button title="Create New Product" onPress={handleCreateProduct} />
         </View>
       ) : (
         <Text>No profile data available.</Text>
       )}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Product Title"
-        value={title}
-        onChangeText={setTitle}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Product Description"
-        value={description}
-        onChangeText={setDescription}
-      />
-
-      <Button title="Add Product" onPress={handleAddProduct} />
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderProduct}
-        numColumns={numColumns}
-        columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.listContainer}
+      <ProductList
+        products={products}
+        onDelete={handleDeleteProduct}
+        onUpdate={handleUpdateProduct}
       />
     </View>
   );
@@ -212,42 +156,5 @@ const styles = StyleSheet.create({
     marginVertical: 2,
     paddingLeft: 13,
     fontWeight: "semibold",
-  },
-  input: {
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    marginBottom: 12,
-    paddingHorizontal: 10,
-    marginLeft: 13,
-    marginRight: 13,
-    borderRadius: 5,
-  },
-  listContainer: {
-    paddingBottom: 20,
-  },
-  row: {
-    justifyContent: "space-between",
-  },
-  card: {
-    backgroundColor: "#f8f8f8",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    width: (Dimensions.get("window").width - 40) / numColumns,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: "#777",
   },
 });
