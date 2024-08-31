@@ -9,7 +9,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
-
+import { BookmarkProvider } from "@/Context/BookmarkContext";
 import { useColorScheme } from "@/components/useColorScheme";
 
 export {
@@ -54,12 +54,14 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-        {/* Tambahkan rute untuk halaman update */}
-        <Stack.Screen name="update" />
-      </Stack>
+      <BookmarkProvider>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+
+          <Stack.Screen name="update" />
+        </Stack>
+      </BookmarkProvider>
     </ThemeProvider>
   );
 }

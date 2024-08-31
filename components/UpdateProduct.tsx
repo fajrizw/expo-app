@@ -1,7 +1,5 @@
-// updateProduct.tsx
 import { updateProduct } from "@/lib/supabase";
 
-// Fungsi updateProduct di sini
 export const updateProductById = async (
   productId: number,
   title: string,

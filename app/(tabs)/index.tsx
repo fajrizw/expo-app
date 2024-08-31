@@ -1,43 +1,57 @@
-import {
-  StyleSheet,
-  ActivityIndicator,
-  TextInput,
-  Button,
-  FlatList,
-  Dimensions,
-  Alert,
-} from "react-native";
-import React, { useState, useEffect, useCallback } from "react";
-import EditScreenInfo from "@/components/EditScreenInfo";
+import { StyleSheet, ActivityIndicator, TouchableOpacity } from "react-native";
+import React, { useState, useCallback } from "react";
 import { Text, View } from "@/components/Themed";
-import {
-  supabase,
-  fetchProducts,
-  createProduct,
-  deleteProduct,
-} from "@/lib/supabase";
+import { supabase, fetchProducts, deleteProduct } from "@/lib/supabase";
 import { useFocusEffect } from "@react-navigation/native";
-
-import { useNavigation } from "@react-navigation/native";
-
+import { useFonts } from "expo-font";
 import { router, useLocalSearchParams } from "expo-router";
 import ProductList from "@/components/ProductList";
+import { useBookmark } from "@/Context/BookmarkContext";
 
-const numColumns = 2;
 interface Product {
   id: number;
   title: string;
   description: string;
 }
+
 export default function TabOneScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation();
 
-  const [title, setTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
+  const { bookmarkedProducts, toggleBookmark } = useBookmark();
+
+  const [fontsLoaded] = useFonts({
+    Poppins: require("@/assets/fonts/Poppins/Poppins-SemiBold.ttf"),
+  });
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!session?.user) {
+        setProfile(null);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username, website, avatar_url")
+        .eq("id", session.user.id)
+        .single();
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDeleteProduct = async (id: number) => {
     await deleteProduct(id);
@@ -50,6 +64,10 @@ export default function TabOneScreen() {
 
   const handleCreateProduct = () => {
     router.push("/create");
+  };
+
+  const handleBookmarkProduct = (id: number) => {
+    toggleBookmark(id);
   };
 
   const loadProducts = async () => {
@@ -65,37 +83,6 @@ export default function TabOneScreen() {
       setLoading(false);
     }
   };
-  async function fetchProfile() {
-    try {
-      setLoading(true);
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-
-      if (sessionError) throw sessionError;
-
-      if (!session?.user) {
-        // User is not authenticated
-        setProfile(null);
-        return;
-      }
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("username, website, avatar_url")
-        .eq("id", session.user.id)
-        .single();
-
-      if (error) throw error;
-
-      setProfile(data);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   useFocusEffect(
     useCallback(() => {
@@ -104,7 +91,7 @@ export default function TabOneScreen() {
     }, [])
   );
 
-  if (loading) {
+  if (!fontsLoaded) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -119,8 +106,6 @@ export default function TabOneScreen() {
       {profile ? (
         <View>
           <Text style={styles.profileText}>{profile.username}</Text>
-
-          <Button title="Create New Product" onPress={handleCreateProduct} />
         </View>
       ) : (
         <Text>No profile data available.</Text>
@@ -130,7 +115,21 @@ export default function TabOneScreen() {
         products={products}
         onDelete={handleDeleteProduct}
         onUpdate={handleUpdateProduct}
+        onBookmark={handleBookmarkProduct}
       />
+      <View style={styles.container}>
+        <TouchableOpacity style={styles.button} onPress={handleCreateProduct}>
+          <Text style={styles.buttonText}>Create New Product</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => {
+            router.push("/bookmark");
+          }}
+        >
+          <Text style={styles.buttonText}>Go to Bookmark</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -138,8 +137,7 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // alignItems: "center",
-    // justifyContent: "center",
+    paddingHorizontal: 10,
   },
   title: {
     fontSize: 24,
@@ -150,6 +148,22 @@ const styles = StyleSheet.create({
     marginVertical: 30,
     height: 1,
     width: "80%",
+  },
+  button: {
+    backgroundColor: "#007BFF",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: "center",
+    marginBottom: 10,
+    alignSelf: "center",
+    width: "auto",
+    minWidth: 150,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   profileText: {
     fontSize: 28,
